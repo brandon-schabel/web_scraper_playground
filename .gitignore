@@ -1,4 +1,5 @@
 secrets.py
 secrets.pyc
-selenium_playground.py
 __pycache__
+mychevy_git.py
+db_secrets.py
