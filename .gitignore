@@ -3,3 +3,5 @@ secrets.pyc
 __pycache__
 mychevy_git.py
 db_secrets.py
+
+*/node_modules
