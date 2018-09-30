@@ -42,6 +42,31 @@ const app = express();
 // allow cross-origin request
 app.use(cors());
 
+app.post('/delete', function(req, res, next) {
+  //console.log(req);
+  //console.log(req.headers)
+  let id = req.headers.id
+
+  /*
+  Profile.deleteOne({id: id}, (err, res)=> {
+    if(err) return handleError(err);
+    console.log(res)
+  }) */
+  let response = {}
+  Profile.findByIdAndDelete(id,(err,res)=> {
+    if(err){
+      res.status(500).send(err)
+    }
+
+    console.log(id + " successfully deleted")
+    response = {
+      message: id + "successfully deleted"
+    }
+  })
+  res.status(200).send(response);
+
+});
+
 mongoose.connect(process.env.DB_URL);
 mongoose.connection.once('open', () => {
   console.log('connected to database');

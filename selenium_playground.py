@@ -18,6 +18,7 @@ connect('t_database', port=port, host=host, username=user, password=password )
 CF.Key.set(subscription_key)
 BASE_URL = 'https://westus.api.cognitive.microsoft.com/face/v1.0'
 CF.BaseUrl.set(BASE_URL)
+FIND_SIMILAR = BASE_URL + ''
 
 def load_site(driver):
   driver.get('https://tinder.com')
@@ -48,6 +49,16 @@ def start_swiping():
     if(check_if_multiple_photos()):
       #close_profile(driver)
       time.sleep(1)
+
+      try:
+        face_detected = CF.face.detect(user["image_url"])
+        faceId = face_detected[0]["faceId"]
+        time.sleep(1)
+        find_similar = CF.face.find_similars(faceId, face_list_id="t_face_list")
+        time.sleep(1)
+        print(find_similar)
+      except:
+        print("find similar failed")
 
       # if no faces are found
       print("attributes before checking if none: " + str(user["attributes"]))
@@ -136,6 +147,11 @@ def detect_face(img_url):
   if(img_url != 'no_url'):
     try:
       faces = CF.face.detect(img_url, attributes='gender,smile,hair')
+      try:
+        print(faces[0]["faceId"])
+        print(faces)
+      except:
+        print("nope")
 
       if len(faces) == 0:
         # if no face found, try going to second picture
