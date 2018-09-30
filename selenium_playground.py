@@ -16,11 +16,10 @@ driver = webdriver.Chrome()
 connect('t_database', port=port, host=host, username=user, password=password )
 
 CF.Key.set(subscription_key)
-
 BASE_URL = 'https://westus.api.cognitive.microsoft.com/face/v1.0'
 CF.BaseUrl.set(BASE_URL)
 
-def load_site():
+def load_site(driver):
   driver.get('https://tinder.com')
   time.sleep(5)
 
@@ -47,17 +46,33 @@ def start_swiping():
     time.sleep(1)
 
     if(check_if_multiple_photos()):
-      close_profile(driver)
+      #close_profile(driver)
       time.sleep(1)
 
       # if no faces are found
       print("attributes before checking if none: " + str(user["attributes"]))
       if(user["attributes"] == "none"):
-        view_profile(driver)
+        time.sleep(2)
+        #view_profile(driver)
         next_photo(driver)
         second_image_url = try_find_image_url('//*[@id="content"]/div/span/div/div[1]/div/main/div[1]/div/div/div[1]/div[1]/div/div[1]/a[2]/div/div[1]/div/div[1]/div/div')
         user["attributes"] = detect_face(second_image_url)
-        print("second image attributes: " + str(user["attributes"]))
+        #print("second image attributes: " + str(user["attributes"]))
+        time.sleep(2)
+
+        if(user["attributes"] == "none"):
+          print("third photo")
+          next_photo(driver)
+          third_image_url = try_find_image_url('//*[@id="content"]/div/span/div/div[1]/div/main/div[1]/div/div/div[1]/div[1]/div/div[1]/a[2]/div/div[1]/div/div[3]/div/div')
+          user["attributes"] = detect_face(third_image_url)
+
+          time.sleep(2)
+          if(user["attributes"] == "none"):
+            print("fourth photo")
+            next_photo(driver)
+            third_image_url = try_find_image_url('//*[@id="content"]/div/span/div/div[1]/div/main/div[1]/div/div/div[1]/div[1]/div/div[1]/a[2]/div/div[1]/div/div[4]/div/div')
+            user["attributes"] = detect_face(third_image_url)
+          
 
       time.sleep(2)
       if(user["attributes"] != "none" and user["attributes"]["gender"] == "female"):
@@ -145,7 +160,7 @@ def check_if_multiple_photos():
 
 ### profile info 
 
-load_site()
+load_site(driver)
 t_login_fb(driver)
 close_initial_dialogs(driver)
 start_swiping()
