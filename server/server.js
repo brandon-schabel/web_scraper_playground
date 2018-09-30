@@ -7,9 +7,9 @@ require('dotenv').config();
 
 const app = express();
 
-
 // allow cross-origin request
 app.use(cors());
+
 mongoose.connect(process.env.DB_URL);
 mongoose.connection.once('open', () => {
   console.log('connected to database');

@@ -7,7 +7,7 @@ const profileSchema = new Schema({
   reason: String,
   liked: String,
   datetime: Date,
-  age = Number,
+  age: Number,
   attributes: {
     smile: Number,
     gender: String,
@@ -16,8 +16,7 @@ const profileSchema = new Schema({
       confidence: Number
     }]
   }
-
 })
 
 // a model is a collection in the mongoDB based on the schema bookSchema, and we are exporting that
-module.exports = mongoose.model("Profile", profileSchema);
+module.exports = mongoose.model("Profile", profileSchema, 'profile');
