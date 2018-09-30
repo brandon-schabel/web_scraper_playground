@@ -3,17 +3,16 @@ const graphqlHTTP = require('express-graphql')
 const schema = require('./schema/schema')
 const mongoose = require('mongoose')
 const cors = require('cors')
+require('dotenv').config();
 
 const app = express();
 
 
-const dbUrl = require('./secrets')
 // allow cross-origin request
 app.use(cors());
-
-mongoose.connect(dbUrl);
+mongoose.connect(process.env.DB_URL);
 mongoose.connection.once('open', () => {
-  console.log('connected to databasee');
+  console.log('connected to database');
 })
 
 // when a request is made to '/graphql' it will know to let the graphqlHTTP package do the rest of the work

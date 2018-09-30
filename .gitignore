@@ -5,3 +5,5 @@ mychevy_git.py
 db_secrets.py
 
 */node_modules
+server/secrets.js
+.env
