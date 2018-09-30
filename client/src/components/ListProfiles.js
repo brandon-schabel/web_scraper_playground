@@ -1,26 +1,45 @@
 import React, { Component } from 'react';
 import { graphql } from 'react-apollo'; // what actually binds react to apollo
 import { getProfilesQuery } from '../queries/queries'
+import { DisplayProfile } from './DisplayProfile'
 
 class ListProfiles extends Component {
-  constructor(props) {
-    super(props);
-    this.state = {
-      selected: null
-    }
+  state = {
+    displayCount: 10,
+    profiles: []
+  }
+
+  loadMore  = () =>{
+    console.log("load more")
+    let newDisplayCount = this.state.displayCount;
+    newDisplayCount += 10
+    let data = this.props.data;
+    let newProfiles = data.profiles.slice(0, this.state.displayCount)
+
+    this.setState({
+      displayCount: newDisplayCount
+    })
+
+    this.setState ({
+      profiles: newProfiles
+    })
   }
 
   displayProfiles() {
+
     let data = this.props.data
+
 
     //check to see if query is still loading, otherwise display books names in list
     if(data.loading) {
       return <div>Loading profiles...</div>
     } else {
       return data.profiles.map(profile => (
+        
           <div>
-            <div key={profile.id}>{profile.name}</div>
-            <img src={profile.image_url}></img>
+            {profile.name}
+            <DisplayProfile props={profile} ></DisplayProfile>
+
           </div>
 
         )
@@ -30,11 +49,21 @@ class ListProfiles extends Component {
 
   render() {
     console.log(this.props);
+    console.log(this.state);
     return (
       <div>
         <div id="book-list" >
-          { this.displayProfiles() }
+          { this.state.profiles.map(profile => (
+            <div>
+              <DisplayProfile props={profile}></DisplayProfile>
+            </div>
+          ))}
         </div>
+        <button onClick={this.loadMore}>
+        Load More
+        </button>
+
+        { this.displayProfiles() }
       </div>
     );
   }
@@ -43,4 +72,5 @@ class ListProfiles extends Component {
 
 // below we are taking the "getBooksQuery" query and binding it to the BookList component
 // it stores the query information in the components props
+
 export default graphql(getProfilesQuery)(ListProfiles);

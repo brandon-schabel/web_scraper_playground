@@ -1,9 +1,41 @@
 const express = require('express');
 const graphqlHTTP = require('express-graphql')
-const schema = require('./schema/schema')
 const mongoose = require('mongoose')
 const cors = require('cors')
+const Profile = require('./models/profile');
+const { buildSchema } = require('graphql')
+
 require('dotenv').config();
+
+
+const schema = buildSchema(`
+  type Profile {
+    id: String
+    name: String
+    reason: String
+    image_url: String
+    liked: String
+    age: Int
+    datetime: String
+  }
+
+  type Query {
+    profile(id: String): Profile
+    profiles: [Profile]
+  }
+`)
+
+const root = {
+  profile:  ({id}) => {
+    return Profile.findById(mongoose.Types.ObjectId(id));
+  },
+  profiles: () => {
+  
+    return Profile.find({});
+  }
+};
+
+
 
 const app = express();
 
@@ -18,6 +50,7 @@ mongoose.connection.once('open', () => {
 // when a request is made to '/graphql' it will know to let the graphqlHTTP package do the rest of the work
 app.use('/graphql', graphqlHTTP({
   schema,
+  rootValue: root,
   graphiql: true // we want to use graphiql tool when we navigate to /graphql in browser
 }));
 
