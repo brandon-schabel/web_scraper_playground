@@ -12,3 +12,4 @@ class Profile(Document):
   #distance = IntField() 
   age = IntField()
   attributes = DictField()
+  user_id = StringField()

@@ -4,6 +4,9 @@ import time
 from secrets import *
 
 def t_login_phone(driver):
+  '''
+  Logs user in via phone number, delays is so user can enter code sent to phone
+  '''
   driver.find_element_by_xpath('//*[@id="modal-manager"]/div/div/div[2]/div/div[3]/div[2]/button').click()
   time.sleep(2)
   phone = driver.find_element_by_xpath('html/body/div[2]/div/div/div[2]/div[2]/div/input')

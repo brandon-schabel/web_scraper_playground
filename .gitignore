@@ -3,7 +3,12 @@ secrets.pyc
 __pycache__
 mychevy_git.py
 db_secrets.py
+config.py
+server/secrets.js
 
 */node_modules
-server/secrets.js
 .env
+*.pyc
+__pycache__
+find.py
+*.log

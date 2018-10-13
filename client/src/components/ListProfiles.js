@@ -51,14 +51,14 @@ class ListProfiles extends Component {
       if(response.status === 200) {
         
         for(let i = 0; i < newProfiles.length; i++) {
-          if(newProfiles[i].id == id) {
+          if(newProfiles[i].id === id) {
             newProfiles.splice(i, 1);
             break;
           }
         }
 
         for(let i=0; i < newProfilesNotShown.length; i++) {
-          if(newProfilesNotShown[i].id == id) {
+          if(newProfilesNotShown[i].id === id) {
             newProfilesNotShown.splice(i, 1);
             break;
           }
@@ -140,9 +140,5 @@ class ListProfiles extends Component {
     );
   }
 }
-
-
-// below we are taking the "getBooksQuery" query and binding it to the BookList component
-// it stores the query information in the components props
 
 export default graphql(getProfilesQuery)(ListProfiles);
