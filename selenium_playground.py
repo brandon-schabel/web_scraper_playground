@@ -13,7 +13,8 @@ from secrets import login_user, fb_pass, subscription_key
 
 import sys
 sys.path.append( './t-api')
-from tinder_api_sms import get_person
+from tinder_api import get_person, get_auth_token
+from fb_auth_token import get_fb_access_token, get_fb_id
 
 driver = webdriver.Chrome()
 
@@ -27,6 +28,8 @@ counter = {
   'likes': 0,
   'nopes': 0
 }
+
+API_KEY = ''
 
 def load_site(driver):
   driver.get('https://tinder.com')
@@ -43,9 +46,9 @@ def save_profile(profile):
     profile["attributes"] = {}
     profile["attributes"]["result"] = "no attributes"
   
-  print(profile["image_url"])
-
-  user = Profile(name = profile["name"], age = profile["age"], image_url=profile["image_url"], liked=profile["liked"], reason=profile["reason"], datetime=datetime.datetime.utcnow, attributes=profile["attributes"], user_id=profile["user_id"])
+  #print(profile["image_url"])
+  #print(profile)
+  user = Profile(name = profile["name"], age = profile["age"], image_url=profile["image_url"], liked=profile["liked"], reason=profile["reason"], datetime=datetime.datetime.utcnow, attributes=profile["attributes"], user_id=profile["user_id"], api_data=profile["api_data"])
   user.save()
 
 def try_find_image_url(xpath):
@@ -164,19 +167,23 @@ def eval_profile():
       user["liked"] = True
       user["reason"] = "passed"
       counter['likes'] += 1
+      user["api_data"] = get_person(user["user_id"])
     else: 
       print("Nope reason: Failed Image Analysis")
       nope(driver)
       user["liked"] = False
       user["reason"] = "Failed image analysis"
       counter['nopes'] += 1
+      user["api_data"] = {"data": "none"}
   else:
     print("Nope reason: 1 Profile Image")
     nope(driver)
     user["liked"] = False
     user["reason"] = "one profile image"
-    return False
     counter['nopes'] += 1
+    user["api_data"] = {"data": "none"}
+    return False
+    
   
   # print(user)
   print(counter)
@@ -192,15 +199,15 @@ def eval_num_profiles(num):
 def run():
   load_site(driver)
   t_login_fb(driver)
+  get_api_token()
   time.sleep(10)
   close_initial_dialogs(driver)
   start_swiping()
 
-
-
-
-
-
+def get_api_token():
+  fb_auth_token = get_fb_access_token(fb_email, fb_pass)
+  fb_user_id = get_fb_id(fb_auth_token)
+  API_KEY = get_auth_token(fb_auth_token, fb_user_id)
 
 '''
 time.sleep(1)
@@ -214,5 +221,4 @@ try:
   print(find_similar)
 except:
   print("find similar failed")
-'''
-        
+''' 
