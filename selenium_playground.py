@@ -1,3 +1,10 @@
+import sys
+sys.path.append( './t-api')
+sys.path.append('./profile_tools')
+
+from get_db_profile_description_data import *
+from search_for_profile_description import *
+
 from selenium import webdriver
 import time
 import cognitive_face as CF
@@ -11,8 +18,7 @@ from login import *
 from schemas import Profile
 from secrets import login_user, fb_pass, subscription_key
 
-import sys
-sys.path.append( './t-api')
+
 from tinder_api import get_person, get_auth_token
 from fb_auth_token import get_fb_access_token, get_fb_id
 
@@ -78,11 +84,6 @@ def detect_face(img_url):
   if(img_url != 'no_url'):
     try:
       faces = CF.face.detect(img_url, attributes='gender,smile,hair')
-      try:
-        print(faces[0]["faceId"])
-        print(faces)
-      except:
-        print("nope")
 
       if len(faces) == 0:
         # if no face found, try going to second picture
@@ -162,12 +163,47 @@ def eval_profile():
           break
 
     time.sleep(2)
+    user["liked"] = False
+    user["reason"] = "No reason"
+    user["api_data"] = {"data": "no data found "}
+
     if(user["attributes"] != "none" and user["attributes"]["gender"] == "female"):
-      like(driver)
-      user["liked"] = True
-      user["reason"] = "passed"
-      counter['likes'] += 1
-      user["api_data"] = get_person(user["user_id"])
+      api_data = get_person(user["user_id"])
+      if "results" in api_data:
+        user["api_data"] = api_data["results"]
+      else:
+        user["api_data"] = {"data": "no data found "}
+      if "bio" in user["api_data"]:
+        bio = filter_string(user["api_data"]["bio"])
+        print(bio)
+        found_word_match = False
+        for each in bio:
+          print(each)
+          if each in filter_words:
+            nope(driver)
+            user["liked"] = False
+            user["reason"] = "Nope reason, found word in bio: " + each
+            print("Nope reason, found word in bio: " + each)
+            counter['nopes'] += 1
+            found_word_match = True
+            break;
+          else:
+            found_word_match = False;
+        
+        if(found_word_match == False):
+          print("didn't find any filter words")
+          like(driver)
+          user["liked"] = True
+          user["reason"] = "passed"
+          counter['likes'] += 1
+        
+      else:
+        print("user has no bio")
+        like(driver)
+        user["liked"] = True
+        user["reason"] = "passed"
+        counter['likes'] += 1
+        
     else: 
       print("Nope reason: Failed Image Analysis")
       nope(driver)
