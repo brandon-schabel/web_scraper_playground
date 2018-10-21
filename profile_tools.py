@@ -21,7 +21,7 @@ remove_punctuation = re.compile(r'[^\w\s]')
 def filter_string(string):
   '''
   removes all punctuation, emojis, emoticons, and anything else that 
-  doesn't represent a normal character.
+  doesn't represent a normal character, then returns array of all words
   '''
   return_array = []
   for word in string.split(" "):
@@ -170,29 +170,11 @@ def get_word_occurance(word, words_array):
 
   return "not found"
 
-profiles = Profile.objects
-
-words_filtered = get_all_words(profiles)
-words_counted = count_all_words(words_filtered)
-sorted_words_filtered = sort_words_by_max(words_counted)
-
-print(sorted_words_filtered)
-'''
-print(words_filtered)
-print(get_word_occurance('18', words_filtered))
-
-print(find_profiles_with_word(profiles, 'prius'))
-'''
-
-words_unfiltered = get_all_words(profiles, filtered=False)
-words_unfiltered_counted = count_all_words(words_unfiltered)
-sorted_words_unfiltered = sort_words_by_max(words_unfiltered_counted)
-
-
 def get_rand_word(words):
   '''
   gets random word from list of words passed in as
   [{"sample": 10}, {"another": 2}, {"word": 5}]
+  returns as {"sample": 10}
   '''
   return words[random.randint(0, len(words) - 1)]
 
@@ -222,3 +204,38 @@ def get_rand_sentence(words, length):
 
 def get_quick_sentence():
   return get_rand_sentence(sorted_words_filtered, 5)
+
+def create_word_text_file(words):
+  f = open("words.txt", "w+")
+  f.write('[ \n')
+  for each in words:
+    for word in each:
+      f.write('  {\n' + '    "' + word + '" : ' + str(each[word]) + '\n  },\n')
+  
+  f.write(']')
+  f.close()
+
+def gen_words(profiles):
+  return sort_words_by_max(count_all_words(get_all_words(profiles)))
+
+'''
+profiles = Profile.objects
+
+
+
+words_filtered = get_all_words(profiles)
+words_counted = count_all_words(words_filtered)
+sorted_words_filtered = sort_words_by_max(words_counted)
+
+print(sorted_words_filtered)
+
+print(words_filtered)
+print(get_word_occurance('18', words_filtered))
+
+print(find_profiles_with_word(profiles, 'prius'))
+
+
+words_unfiltered = get_all_words(profiles, filtered=False)
+words_unfiltered_counted = count_all_words(words_unfiltered)
+sorted_words_unfiltered = sort_words_by_max(words_unfiltered_counted)
+'''
