@@ -19,7 +19,7 @@ def t_login_fb(driver):
   handles = driver.window_handles # before the pop-up window closes
   driver.switch_to_window(handles.pop())
   
-  driver.find_element_by_xpath('//*[@id="email"]').send_keys(login_user)
+  driver.find_element_by_xpath('//*[@id="email"]').send_keys(fb_email)
   driver.find_element_by_xpath('//*[@id="pass"]').send_keys(fb_pass)
   driver.find_element_by_xpath('//*[@id="u_0_0"]').click()
   driver.switch_to_window(parent_h)
