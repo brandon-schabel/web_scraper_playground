@@ -1,16 +1,66 @@
-import sys
-sys.path.append( '../')
+import re
+import string
 import random
 
 from mongoengine import *
-from db_secrets import *
-
+from secrets import *
 from schemas import Profile
-from search_for_profile_description import filter_string, find_profiles_with_word
 
-connect('t_database', port=port, host=host, username=user, password=password )
+emoji_pattern = re.compile("["
+        u"\U0001F600-\U0001F64F"  # emoticons
+        u"\U0001F300-\U0001F5FF"  # symbols & pictographs
+        u"\U0001F680-\U0001F6FF"  # transport & map symbols
+        u"\U0001F1E0-\U0001F1FF"  # flags (iOS)
+        u"\U00010000-\U0010ffff"
+                           "]+", flags=re.UNICODE)
+
+rgx = re.compile('[^' + ''.join(string.printable) + ']')
+remove_punctuation = re.compile(r'[^\w\s]')
+
+# returns an array, turn to string by do ' '.join(your_array)
+def filter_string(string):
+  '''
+  removes all punctuation, emojis, emoticons, and anything else that 
+  doesn't represent a normal character.
+  '''
+  return_array = []
+  for word in string.split(" "):
+    word = word.lower()
+    word = rgx.sub('', word)
+    word = emoji_pattern.sub(r'', word)
+    word = remove_punctuation.sub(r'', word)
+    word = word.split('\n')
+    
+    for each in word:
+      if(len(each) > 0):
+        return_array.append(each)
+  
+  return return_array
+
+def find_profiles_with_word(profiles, word):
+  '''
+  return profile all ids with profiles that contain a certain word
+  '''
+  profile_ids = []
+  
+  for profile in profiles:
+    try:
+      bio = profile["api_data"]["bio"]
+      filtered_bio = filter_string(bio)
+
+      if word in bio:
+        profile_ids.append(profile["tinder_data"]["results"]["_id"])
+    except: 
+      continue;
+  
+  return profile_ids
+
+connect('t_database', port=db_port, host=db_host, username=db_user, password=db_password )
 
 def get_all_words(profiles, filtered=True):  
+  '''
+  grabs all profile bios from data base, then puts every word into a list
+  '''
   all_words = []
   for profile in profiles:
     try:
@@ -27,6 +77,10 @@ def get_all_words(profiles, filtered=True):
 
 
 def count_all_words(array):
+  '''
+  Creates an object that counts the number of occurances of each word 
+  in all profile bios, this  does not return a sorted list
+  '''
   words_count = {}
 
   for word in array:
@@ -37,8 +91,18 @@ def count_all_words(array):
   
   return words_count
 
-# this just flattens to object to the word and numbers for ex.: {"word": 10}
 def no_extra(words):
+  '''
+  flattens to object to the word and numbers for ex.: 
+  from 
+  {
+    "word": "my_word",
+    "occurs": 10
+  } 
+
+  to 
+  {"word": 10}
+  '''
   new_sorted = []
   for each in words:
     new_sorted.append({each["word"]: each["occurs"]})
@@ -49,7 +113,7 @@ def no_extra(words):
 def sort_words_by_max(words):
   '''
   pass in object of words in format of
-  [{"sample": 10}]
+  [{"sample": 10}, {"another": 2}, {"word": 5}]
   '''
   sorted_words = []
   
@@ -92,6 +156,10 @@ def sort_words_by_max(words):
 
 
 def get_word_occurance(word, words_array):
+  '''
+  pass in a word to be search in a list of search able words,
+  the list format should be [{"sample": 10}, {"another": 2}, {"word": 5}]
+  '''
   for each in words_array:
     try:
       if(each[word]):
@@ -122,6 +190,10 @@ sorted_words_unfiltered = sort_words_by_max(words_unfiltered_counted)
 
 
 def get_rand_word(words):
+  '''
+  gets random word from list of words passed in as
+  [{"sample": 10}, {"another": 2}, {"word": 5}]
+  '''
   return words[random.randint(0, len(words) - 1)]
 
 def get_rand_unfiltered():
@@ -130,7 +202,12 @@ def get_rand_unfiltered():
 def get_rand_filtered():
   return get_rand_word(sorted_words_filtered)
 
-def get_rand_sentence(words, length):
+def get_rand_sentence(words, length): 
+  '''
+  creates random setence from list of words passed in as
+  [{"sample": 10}, {"another": 2}, {"word": 5}]
+  '''
+
   sentence = []
   return_sentence = []
 

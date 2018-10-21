@@ -1,30 +1,29 @@
 import sys
-sys.path.append( './t-api')
-sys.path.append('./profile_tools')
-
-from get_db_profile_description_data import *
-from search_for_profile_description import *
-
 from selenium import webdriver
 import time
 import cognitive_face as CF
 from mongoengine import *
-from db_secrets import *
 import datetime 
 
+### project specific ####
 from get_profile_info import *
 from buttons_key_presses import *
 from login import *
 from schemas import Profile
-from secrets import login_user, fb_pass, subscription_key
+from secrets import *
 
 
+#### Profile Tools ####
+from profile_tools import *
+
+##### tinder api folder #####
+sys.path.append( './t-api')
 from tinder_api import get_person, get_auth_token
 from fb_auth_token import get_fb_access_token, get_fb_id
 
 driver = webdriver.Chrome()
 
-connect('t_database', port=port, host=host, username=user, password=password )
+connect('t_database', port=db_port, host=db_host, username=db_user, password=db_password )
 
 CF.Key.set(subscription_key)
 BASE_URL = 'https://westus.api.cognitive.microsoft.com/face/v1.0'
@@ -42,12 +41,18 @@ def load_site(driver):
   time.sleep(5)
 
 def start_swiping():
+  '''
+  infite loop to run program indefinitely
+  '''
   time.sleep(5)
 
   while(True):
     result = eval_profile()
 
 def save_profile(profile):
+  '''
+  save profile to database
+  '''
   if(profile["attributes"] == "none"):
     profile["attributes"] = {}
     profile["attributes"]["result"] = "no attributes"
@@ -58,6 +63,9 @@ def save_profile(profile):
   user.save()
 
 def try_find_image_url(xpath):
+  '''
+  tries to find image_url based on an xpath passed in
+  '''
   try:
     image = driver.find_element_by_xpath(xpath)
   except:
@@ -69,6 +77,9 @@ def try_find_image_url(xpath):
     return 'no_image_found'
 
 def extract_image_url(photo_string):
+  '''
+  given an xpath to an image, extract the photo url
+  '''
   try: 
     extracted_url = photo_string.value_of_css_property("background-image")
     extracted_url = str(extracted_url).split('"')
@@ -81,6 +92,9 @@ def extract_image_url(photo_string):
     print('couldn\'t extract image url')
 
 def detect_face(img_url):
+  '''
+  Uses microsoft face api to detect faces and return attributes
+  '''
   if(img_url != 'no_url'):
     try:
       faces = CF.face.detect(img_url, attributes='gender,smile,hair')
@@ -96,6 +110,9 @@ def detect_face(img_url):
     return "none"
 
 def check_if_multiple_photos():
+  '''
+  Check to see if profile has more than one image, if not probably fake
+  '''
   try:
     #check to see if second photo element exist
     if(driver.find_element_by_xpath('//*[@id="content"]/div/span/div/div[1]/div/main/div[1]/div/div/div[1]/div[1]/div/div[1]/a[2]/div/div[1]/div/div[2]')):
@@ -117,7 +134,9 @@ def eval_next_photo(user_attributes, photo_num, driver):
   return user_attributes
   
 def get_user_id(url):
-  #"https://images-ssl.gotinder.com/5a2255cfbc08658f77cbc2dd/640x640_5aae7333-854b-4741-900a-fc6e36a4c6b7.jpg"
+  '''
+  returns user_id from profile image url
+  '''
   try:
     url = url.split('/')
     print('userid=' + url[3])
@@ -126,6 +145,9 @@ def get_user_id(url):
     return "invalid_url"
 
 def eval_profile():
+  '''
+  Main profile analysis function
+  '''
   user = {}
   user["image_url"] = ''
 
@@ -141,10 +163,6 @@ def eval_profile():
   time.sleep(1)
 
   if(check_if_multiple_photos()):
-
-    # if no faces are found
-    #print("attributes before checking if none: " + str(user["attributes"]))
-
     # when no faces are found in profile image, go through other images
     if(user["attributes"] == "none" ):
       checking_photos = True
@@ -226,6 +244,9 @@ def eval_profile():
   save_profile(user)
 
 def eval_num_profiles(num):
+  ''' 
+  evaluates a set number of profiles
+  '''
   while(num > 0):
     eval_profile()
     print(num)
@@ -241,6 +262,9 @@ def run():
   start_swiping()
 
 def get_api_token():
+  '''
+  gets and sets api key on startup
+  '''
   fb_auth_token = get_fb_access_token(fb_email, fb_pass)
   fb_user_id = get_fb_id(fb_auth_token)
   API_KEY = get_auth_token(fb_auth_token, fb_user_id)

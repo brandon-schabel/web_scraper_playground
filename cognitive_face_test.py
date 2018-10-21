@@ -8,7 +8,7 @@ CF.BaseUrl.set(BASE_URL)
 
 
 # You can use this example JPG or replace the URL below with your own URL to a JPEG image.
-#img_url = 'https://images-ssl.gotinder.com/5b8a4aa382b1fa4111329ca3/640x640_0bccda0d-dcba-4405-83ba-7d25ffdd762d.jpg'
+#img_url = 'exmaple_url.com'
 #faces = CF.face.detect(img_url, attributes='age,gender')
 #print(faces)
 

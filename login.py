@@ -1,5 +1,3 @@
-#from selenium import webdriver
-#driver = webdriver.Chrome()
 import time
 from secrets import *
 
