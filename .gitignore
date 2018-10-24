@@ -14,3 +14,4 @@ find.py
 *.log
 default.html
 selenium_playground_bu.py
+all_words_list.py

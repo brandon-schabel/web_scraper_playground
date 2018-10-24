@@ -1,45 +1,42 @@
 import re
 import string
 import random
-from secrets import *
-from db_connect import get_profiles
 
-emoji_pattern = re.compile("["
-        u"\U0001F600-\U0001F64F"  # emoticons
-        u"\U0001F300-\U0001F5FF"  # symbols & pictographs
-        u"\U0001F680-\U0001F6FF"  # transport & map symbols
-        u"\U0001F1E0-\U0001F1FF"  # flags (iOS)
-        u"\U00010000-\U0010ffff"
-                           "]+", flags=re.UNICODE)
+from mongoengine import *
+from secrets import *
+from schemas import Profile
+
+from db_connect import *
 
 rgx = re.compile('[^' + ''.join(string.printable) + ']')
 remove_punctuation = re.compile(r'[^\w\s]')
 
 # returns an array, turn to string by do ' '.join(your_array)
-def filter_string(string):
+cpdef list filter_string(str string):
   '''
   removes all punctuation, emojis, emoticons, and anything else that 
   doesn't represent a normal character, then returns array of all words
   '''
-  return_array = []
-  for word in string.split(" "):
+  cdef list return_list = []
+  cdef str word
+  string = string.replace("\n", ' ')
+  cdef list splitStr = string.split(" ")
+
+  for word in splitStr:
     word = word.lower()
     word = rgx.sub('', word)
-    word = emoji_pattern.sub(r'', word)
     word = remove_punctuation.sub(r'', word)
-    word = word.split('\n')
-    
-    for each in word:
-      if(len(each) > 0):
-        return_array.append(each)
-  
-  return return_array
+    return_list.append(word)
 
-def find_profiles_with_word(profiles, word):
+  return return_list
+
+cpdef list find_profiles_with_word(profiles, str word):
   '''
   return profile all ids with profiles that contain a certain word
   '''
-  profile_ids = []
+  cdef list profile_ids = []
+  cdef str bio
+  cdef list filtered_bio
   
   for profile in profiles:
     try:
@@ -53,33 +50,37 @@ def find_profiles_with_word(profiles, word):
   
   return profile_ids
 
-def get_all_words(profiles, filtered=True):  
+cpdef list get_all_words(profiles, filtered=True):  
   '''
   grabs all profile bios from data base, then puts every word into a list
   '''
-  all_words = []
+  cdef list all_words = []
+  cdef str bio
+  cdef str each
+  cdef list split_bio = []
+
   for profile in profiles:
     try:
       bio = profile["api_data"]["bio"]
       if filtered:
-        bio = filter_string(bio)
+        split_bio = filter_string(bio)
       else:
-        bio = bio.split(" ")
-      for each in bio:
+        split_bio = bio.split(" ")
+      for each in split_bio:
         all_words.append(each)
     except:
       continue;
   return all_words
 
-
-def count_all_words(array):
+cpdef dict count_all_words(list word_list):
   '''
   Creates an object that counts the number of occurances of each word 
-  in all profile bios, this  does not return a sorted list
+  in all profile bios, this does not return a sorted list, it returns an object
   '''
-  words_count = {}
+  cdef dict words_count = {}
+  cdef str word
 
-  for word in array:
+  for word in word_list:
     if(word in words_count):
       words_count[word] += 1
     else:
@@ -87,7 +88,7 @@ def count_all_words(array):
   
   return words_count
 
-def no_extra(words):
+cpdef list no_extra(list words):
   '''
   flattens to object to the word and numbers for ex.: 
   from 
@@ -99,20 +100,29 @@ def no_extra(words):
   to 
   {"word": 10}
   '''
-  new_sorted = []
+  cdef list new_sorted = []
+  cdef dict each
+  
   for each in words:
     new_sorted.append({each["word"]: each["occurs"]})
 
   return new_sorted
 
 # should be object
-def sort_words_by_max(words):
+cpdef list sort_words_by_max(dict words):
   '''
-  pass in object of words in format of
+  pass in list of words in format of
   [{"sample": 10}, {"another": 2}, {"word": 5}]
   '''
-  sorted_words = []
-  
+  cdef list sorted_words = []
+  cdef str word
+  cdef int len_sorted
+  cdef int occurs 
+  cdef dict word_to_insert
+  cdef int i
+  cdef str curr_sorted_word
+  cdef int curr_sorted_occurance
+
   for word in words:
     len_sorted = len(sorted_words)
 
@@ -149,14 +159,14 @@ def sort_words_by_max(words):
   
   return no_extra(sorted_words)
 
-
-
-def get_word_occurance(word, words_array):
+cpdef str get_word_occurance(str word, list words_list):
   '''
   pass in a word to be search in a list of search able words,
   the list format should be [{"sample": 10}, {"another": 2}, {"word": 5}]
   '''
-  for each in words_array:
+  cdef str each
+
+  for each in words_list:
     try:
       if(each[word]):
         return each[word]
@@ -164,85 +174,33 @@ def get_word_occurance(word, words_array):
     except:
       continue;
 
-  return "not found"
+  return "not_found"
 
-def get_rand_word(words):
+
+cpdef dict get_rand_word(list words):
   '''
   gets random word from list of words passed in as
   [{"sample": 10}, {"another": 2}, {"word": 5}]
   returns as {"sample": 10}
   '''
-  return words[random.randint(0, len(words) - 1)]
+  cdef dict word = words[random.randint(0, len(words) - 1)]
+  return word
 
-def get_rand_sentence(words, length): 
+cpdef str get_rand_sentence(list words, int length): 
   '''
   creates random setence from list of words passed in as
   [{"sample": 10}, {"another": 2}, {"word": 5}]
   '''
-
-  sentence = []
-  return_sentence = []
+  cdef str sentence = ''
+  cdef dict each
+  cdef str word
+  cdef dict rand_word
 
   while length > 0:
-    sentence.append(get_rand_word(words))
+    rand_word = get_rand_word(words)
+
+    for word in rand_word:
+      sentence += word + ' '
     length -= 1
-  for each in sentence:
-    for word in each:
-      return_sentence.append(word)
 
-  return ' '.join(return_sentence)
-
-
-
-def create_word_counted_text_file(words):
-  f = open("words.txt", "w+")
-  f.write('[ \n')
-  for each in words:
-    for word in each:
-      f.write('  {\n' + '    "' + word + '" : ' + str(each[word]) + '\n  },\n')
-  
-  f.write(']')
-  f.close()
-
-def create_all_words_text_file(profiles):
-  all_words = get_all_words(profiles)
-  f = open("all_words_list.py", "w+")
-  f.write('all_words = [')
-  for word in all_words:
-    f.write('"' + word + '", ')
-  f.write(']')
-  f.close()
-
-def gen_words(profiles):
-  return sort_words_by_max(count_all_words(get_all_words(profiles)))
-
-'''
-profiles = Profile.objects
-
-
-
-words_filtered = get_all_words(profiles)
-words_counted = count_all_words(words_filtered)
-sorted_words_filtered = sort_words_by_max(words_counted)
-
-print(sorted_words_filtered)
-
-print(words_filtered)
-print(get_word_occurance('18', words_filtered))
-
-print(find_profiles_with_word(profiles, 'prius'))
-
-
-words_unfiltered = get_all_words(profiles, filtered=False)
-words_unfiltered_counted = count_all_words(words_unfiltered)
-sorted_words_unfiltered = sort_words_by_max(words_unfiltered_counted)
-
-def get_rand_unfiltered():
- return get_rand_word(sorted_words_unfiltered)
-
-def get_rand_filtered():
-  return get_rand_word(sorted_words_filtered)
-
-def get_quick_sentence():
-  return get_rand_sentence(sorted_words_filtered, 5)
-'''
+  return sentence

@@ -11,10 +11,13 @@ from buttons_key_presses import *
 from login import *
 from schemas import Profile
 from secrets import *
+import pyximport
+pyximport.install()
 
 
 #### Profile Tools ####
-from profile_tools import *
+#from profile_tools import *
+from profile_tools_cy import *
 
 ##### tinder api folder #####
 sys.path.append( './t-api')
@@ -125,12 +128,12 @@ def check_if_multiple_photos():
 def eval_next_photo(user_attributes, photo_num, driver):
   xpath = '//*[@id="content"]/div/span/div/div[1]/div/main/div[1]/div/div/div[1]/div[1]/div/div[1]/a[2]/div/div[1]/div/div[' + str(photo_num) + ']/div/div'
   '''check to see if last photo failed image analysis'''
-  time.sleep(2)
+  time.sleep(1)
   image_url = try_find_image_url(xpath)
   if(image_url == "no_image_found"):
     return "no_image_found"
   user_attributes = detect_face(image_url)
-  time.sleep(2)
+  time.sleep(1)
   return user_attributes
   
 def get_user_id(url):
@@ -180,7 +183,7 @@ def eval_profile():
           user["attributes"] = photo_eval
           break
 
-    time.sleep(2)
+    time.sleep(1)
     user["liked"] = False
     user["reason"] = "No reason"
     user["api_data"] = {"data": "no data found "}
